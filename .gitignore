@@ -1,0 +1,19 @@
+
+# Dependencies
+node_modules/
+
+# Secret environment variables
+.env
+.env.*
+
+# Keep example environment file if needed
+!.env.example
+
+# Logs
+npm-debug.log*
+logs/
+
+# OS and editor files
+.DS_Store
+Thumbs.db
+.vscode/

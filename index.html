@@ -1,0 +1,222 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0b1220">
+  <meta name="description" content="HealthGuard helps organize healthcare billing checks, patient safety reports and complaint tracking.">
+  <title>HealthGuard | Patient Safety Intelligence</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar">
+      <a href="#overview" class="brand">
+        <span class="brand-mark">H<span>+</span></span>
+        <span class="brand-copy">health<span>guard</span><small>SAFETY INTELLIGENCE</small></span>
+      </a>
+
+      <div class="workspace-label">WORKSPACE</div>
+      <nav class="navigation">
+        <a class="nav-link active" href="#overview"><span>◫</span> Overview</a>
+        <a class="nav-link" href="#bill-checker"><span>▤</span> Bill intelligence</a>
+        <a class="nav-link" href="#complaints"><span>◎</span> Safety reports</a>
+        <a class="nav-link" href="#cases"><span>▦</span> Case management</a>
+      </nav>
+
+      <div class="sidebar-note">
+        <div class="note-icon">✦</div>
+        <strong>Safer care starts here.</strong>
+        <p>Bring billing transparency and patient safety into one workspace.</p>
+        <a href="#complaints">Submit a report ↗</a>
+      </div>
+
+      <div class="sidebar-bottom">
+        <div class="user-avatar">HG</div>
+        <div class="user-details"><strong>HealthGuard</strong><span>Project workspace</span></div>
+        <span class="user-menu">•••</span>
+      </div>
+    </aside>
+
+    <main class="main-content" id="overview">
+      <header class="topbar">
+        <div class="topbar-left">
+          <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu">☰</button>
+          <div><div class="eyebrow">HEALTHCARE OVERSIGHT</div><h1>Safety dashboard</h1></div>
+        </div>
+        <div class="topbar-right">
+          <div class="live-status"><span class="status-dot"></span><span id="serverStatus">Checking connection...</span></div>
+          <a href="#complaints" class="button button-dark top-action">+ New report</a>
+        </div>
+      </header>
+
+      <section class="welcome-panel">
+        <div class="welcome-copy">
+          <span class="pill pill-light"><span class="sparkle">✦</span> YOUR SAFETY WORKSPACE</span>
+          <h2>Better visibility.<br><span>Safer healthcare.</span></h2>
+          <p>Monitor billing concerns, organize patient safety reports, and keep important cases in view.</p>
+          <a href="#complaints" class="button button-white">Create a safety report <span>↗</span></a>
+        </div>
+        <div class="hero-art" aria-hidden="true">
+          <div class="orbit orbit-one"></div><div class="orbit orbit-two"></div>
+          <div class="hero-cross">+</div>
+          <div class="hero-shield"><span>✓</span></div>
+          <div class="floating-card float-top"><span class="float-icon green">✓</span><span><strong>Safety first</strong><small>Every concern matters</small></span></div>
+          <div class="floating-card float-bottom"><span class="float-icon purple">↗</span><span><strong>Clear oversight</strong><small>One organized workspace</small></span></div>
+        </div>
+      </section>
+
+      <section class="section-block">
+        <div class="section-heading">
+          <div><div class="eyebrow">AT A GLANCE</div><h2>Workspace overview</h2></div>
+          <span class="subtle-label"><span class="status-dot"></span> Live dashboard</span>
+        </div>
+
+        <div class="stats-grid">
+          <article class="stat-card">
+            <div class="stat-top"><span class="stat-icon icon-blue">▤</span><span class="stat-label">TOTAL REPORTS</span></div>
+            <div class="stat-value" id="totalReports">—</div>
+            <p class="stat-description">Safety reports recorded</p>
+            <div class="stat-foot"><span class="mini-bar blue-bar"></span> All submitted reports</div>
+          </article>
+          <article class="stat-card">
+            <div class="stat-top"><span class="stat-icon icon-amber">⌕</span><span class="stat-label">BILL FLAGS</span></div>
+            <div class="stat-value" id="totalFlags">0</div>
+            <p class="stat-description">Potential duplicate entries</p>
+            <div class="stat-foot"><span class="mini-bar amber-bar"></span> Based on local checks</div>
+          </article>
+          <article class="stat-card">
+            <div class="stat-top"><span class="stat-icon icon-green">♡</span><span class="stat-label">SAFETY CASES</span></div>
+            <div class="stat-value" id="totalSafety">—</div>
+            <p class="stat-description">Reports in your workspace</p>
+            <div class="stat-foot"><span class="mini-bar green-bar"></span> Patient safety tracking</div>
+          </article>
+          <article class="stat-card">
+            <div class="stat-top"><span class="stat-icon icon-purple">⌁</span><span class="stat-label">BILL CHECKS</span></div>
+            <div class="stat-value" id="totalChecks">0</div>
+            <p class="stat-description">Checks in this session</p>
+            <div class="stat-foot"><span class="mini-bar purple-bar"></span> Local session activity</div>
+          </article>
+        </div>
+      </section>
+
+      <div class="content-grid">
+        <section class="panel bill-panel" id="bill-checker">
+          <div class="panel-heading">
+            <div><div class="eyebrow">BILLING TRANSPARENCY</div><h2>Bill intelligence</h2><p>Review a bill for repeated item names.</p></div>
+            <span class="panel-icon blue-icon">▤</span>
+          </div>
+
+          <label class="upload-zone" for="billImage">
+            <input type="file" id="billImage" accept="image/*">
+            <span class="upload-symbol">↑</span>
+            <strong>Upload a bill image</strong>
+            <span>Choose an image from your device</span>
+            <span class="upload-browse">Browse files</span>
+            <img id="preview" alt="Selected bill preview" hidden>
+          </label>
+          <p class="helper-text">Image upload is for preview only. This prototype does not automatically read bill images.</p>
+
+          <div class="divider-label"><span>OR ADD ITEMS MANUALLY</span></div>
+          <div class="item-input-grid">
+            <div class="field"><label for="itemName">Item name</label><input type="text" id="itemName" placeholder="e.g. Consultation fee"></div>
+            <div class="field"><label for="itemPrice">Amount (₹)</label><input type="number" id="itemPrice" min="0" step="0.01" placeholder="500"></div>
+          </div>
+          <button type="button" id="addItem" class="button button-outline button-full">+ Add bill item</button>
+
+          <div class="bill-items-header"><strong>Bill items</strong><span id="itemCount">0 items</span></div>
+          <div id="items" class="bill-items"><div class="empty-state">Your added items will appear here.</div></div>
+          <div class="bill-total-row"><span>Estimated total</span><strong id="billTotal">₹0.00</strong></div>
+          <button type="button" id="checkBill" class="button button-primary button-full">Check for duplicates <span>→</span></button>
+          <div id="billResult" class="result-box" role="status" aria-live="polite" hidden></div>
+          <p class="disclaimer">This tool flags repeated names only. It cannot verify official prices or confirm fraud. Please review concerns with the healthcare provider.</p>
+        </section>
+
+        <section class="panel report-panel" id="complaints">
+          <div class="panel-heading">
+            <div><div class="eyebrow">PATIENT ADVOCACY</div><h2>Submit a safety report</h2><p>Document a concern for follow-up.</p></div>
+            <span class="panel-icon green-icon">♡</span>
+          </div>
+
+          <div class="form-intro"><span class="form-intro-icon">i</span><span>Share clear details so your concern can be reviewed.</span></div>
+          <form id="complaintForm">
+            <div class="field">
+              <label for="complaintCategory">Report category <span class="required">*</span></label>
+              <select id="complaintCategory" required>
+                <option value="">Choose a category</option>
+                <option value="Billing Issue">Billing issue</option>
+                <option value="Overcharging">Overcharging concern</option>
+                <option value="Patient Safety">Patient safety</option>
+                <option value="Medical Negligence">Medical negligence concern</option>
+                <option value="Service Quality">Service quality</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="complaintText">Describe your concern <span class="required">*</span></label>
+              <textarea id="complaintText" rows="5" minlength="10" required placeholder="Describe what happened, when it happened, and any details that may help with review..."></textarea>
+              <span class="field-hint">Please avoid sharing unnecessary sensitive medical information.</span>
+            </div>
+            <div class="field">
+              <label for="contactMethod">Preferred contact method</label>
+              <select id="contactMethod">
+                <option value="none">No contact preference</option>
+                <option value="email">Email</option>
+                <option value="phone">Phone</option>
+              </select>
+            </div>
+            <button type="submit" id="submitReport" class="button button-primary button-full">Submit safety report <span>→</span></button>
+            <div id="reportResult" class="result-box" role="status" aria-live="polite" hidden></div>
+            <p class="privacy-note"><span>♧</span> Only submit information you are authorized to share. This student prototype is not an emergency service or an official healthcare regulator.</p>
+          </form>
+        </section>
+      </div>
+
+      <section class="panel cases-panel" id="cases">
+        <div class="cases-heading">
+          <div><div class="eyebrow">REPORT MANAGEMENT</div><h2>Recent safety reports</h2><p>View and filter reports returned by your backend.</p></div>
+          <button id="refreshCases" class="button button-outline">↻ Refresh reports</button>
+        </div>
+        <div class="filters-row">
+          <div class="search-box"><span>⌕</span><input id="complaintSearch" type="search" placeholder="Search reports..." aria-label="Search reports"></div>
+          <select id="categoryFilter" aria-label="Filter by category">
+            <option value="">All categories</option>
+            <option value="Billing Issue">Billing issue</option>
+            <option value="Overcharging">Overcharging</option>
+            <option value="Patient Safety">Patient safety</option>
+            <option value="Medical Negligence">Medical negligence</option>
+            <option value="Service Quality">Service quality</option>
+            <option value="Other">Other</option>
+          </select>
+          <select id="statusFilter" aria-label="Filter by status">
+            <option value="">All statuses</option>
+            <option value="pending">Pending</option>
+            <option value="under review">Under review</option>
+            <option value="resolved">Resolved</option>
+            <option value="open">Open</option>
+          </select>
+        </div>
+        <div id="filterMessage" class="table-feedback" role="status">Loading reports...</div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>REFERENCE</th><th>CATEGORY</th><th>DESCRIPTION</th><th>STATUS</th><th>DATE SUBMITTED</th></tr></thead>
+            <tbody id="caseTable"><tr><td colspan="5" class="table-empty">Loading your reports...</td></tr></tbody>
+          </table>
+        </div>
+        <div class="table-footer"><span>Reports are displayed according to available backend data.</span><span class="table-footer-mark">HEALTHGUARD <span>●</span></span></div>
+      </section>
+
+      <footer class="footer">
+        <a href="#overview" class="footer-brand"><span class="footer-mark">H+</span> HealthGuard</a>
+        <span>Built for transparency. Designed for safer care.</span>
+        <span>Student project prototype · Not an official medical service</span>
+      </footer>
+    </main>
+  </div>
+  <script src="script.js"></script>
+</body>
+</html>
