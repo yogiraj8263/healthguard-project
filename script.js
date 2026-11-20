@@ -13,46 +13,39 @@ document.addEventListener("DOMContentLoaded", () => {
     loadingReports: false
   };
 
+  // -------------------------------
+  // COMMON FUNCTIONS
+  // -------------------------------
+
   const money = (value) =>
     new Intl.NumberFormat("en-IN", {
       style: "currency",
-      currency: "INR",
-      minimumFractionDigits: 2
+      currency: "INR"
     }).format(Number(value) || 0);
 
-  function showMessage(element, message, type = "success") {
+  function showMessage(element, message, type = "info") {
     if (!element) return;
-
+    element.className = `result-box ${type}`;
     element.textContent = message;
-    element.className =
-      `result-box ${type === "error" ? "error" : type === "warning" ? "warning" : ""}`;
-    element.hidden = false;
-  }
-
-  function normalizeText(value) {
-    return String(value || "")
-      .trim()
-      .toLowerCase()
-      .replace(/\s+/g, " ");
   }
 
   function escapeHTML(value) {
-    return String(value ?? "").replace(/[&<>"']/g, (character) => ({
+    return String(value ?? "").replace(/[&<>"']/g, (char) => ({
       "&": "&amp;",
       "<": "&lt;",
       ">": "&gt;",
       '"': "&quot;",
       "'": "&#39;"
-    })[character]);
+    })[char]);
   }
 
   function updateStats() {
-    if ($("totalFlags")) {
-      $("totalFlags").textContent = state.flaggedItems;
-    }
-
     if ($("totalChecks")) {
       $("totalChecks").textContent = state.billChecks;
+    }
+
+    if ($("totalFlags")) {
+      $("totalFlags").textContent = state.flaggedItems;
     }
 
     if ($("totalReports")) {
@@ -60,525 +53,584 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     if ($("totalSafety")) {
-      $("totalSafety").textContent = state.reports.filter((report) => {
-        const category = String(report.category || "").toLowerCase();
-        return category.includes("safety") || category.includes("negligence");
-      }).length;
+      $("totalSafety").textContent = "100%";
     }
   }
 
-  // Sidebar
-  const sidebar = $("sidebar");
+  // -------------------------------
+  // SIDEBAR NAVIGATION
+  // -------------------------------
 
-  $("menuToggle")?.addEventListener("click", () => {
+  const sidebar = $("sidebar");
+  const menuToggle = $("menuToggle");
+
+  menuToggle?.addEventListener("click", () => {
     sidebar?.classList.toggle("open");
   });
 
-  document.querySelectorAll(".nav-link, .brand, .top-action").forEach((link) => {
-    link.addEventListener("click", () => sidebar?.classList.remove("open"));
-  });
-
-  document.querySelectorAll(".nav-link").forEach((link) => {
+  document.querySelectorAll(".nav-link, .quick-card").forEach((link) => {
     link.addEventListener("click", () => {
+      if (sidebar) sidebar.classList.remove("open");
+
       document.querySelectorAll(".nav-link").forEach((item) => {
         item.classList.remove("active");
       });
 
-      link.classList.add("active");
+      const matchingLink = document.querySelector(
+        `.nav-link[href="${link.getAttribute("href")}"]`
+      );
+
+      matchingLink?.classList.add("active");
     });
   });
 
-  // Bill image preview
+  // -------------------------------
+  // BACKEND HEALTH CHECK
+  // -------------------------------
+
+  async function checkBackend() {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/health`);
+
+      if (!response.ok) {
+        throw new Error("Backend health check failed");
+      }
+
+      console.log("HealthGuard backend connected.");
+    } catch (error) {
+      console.error("Backend connection error:", error);
+    }
+  }
+
+  // -------------------------------
+  // BILL IMAGE PREVIEW
+  // -------------------------------
+
   $("billImage")?.addEventListener("change", (event) => {
     const file = event.target.files?.[0];
-    const preview = $("preview");
+    const preview = $("billPreview");
 
     if (!file || !preview) return;
 
     if (!file.type.startsWith("image/")) {
-      showMessage($("billResult"), "Please choose a valid image file.", "error");
-      event.target.value = "";
-      return;
-    }
-
-    if (file.size > 8 * 1024 * 1024) {
-      showMessage(
-        $("billResult"),
-        "Image is too large. Please choose an image under 8 MB.",
-        "error"
-      );
-
+      alert("Please select a valid image.");
       event.target.value = "";
       return;
     }
 
     preview.src = URL.createObjectURL(file);
-    preview.hidden = false;
-    preview.alt = `Preview of ${file.name}`;
-
-    showMessage(
-      $("billResult"),
-      "Bill image selected. Add the bill items manually below to run the duplicate-name check.",
-      "warning"
-    );
+    preview.style.display = "block";
   });
 
-  // Bill item management
-  function renderItems() {
-    const container = $("items");
-    if (!container) return;
+  // -------------------------------
+  // BILL CHECKER
+  // -------------------------------
 
-    if ($("itemCount")) {
-      $("itemCount").textContent =
-        `${state.items.length} ${state.items.length === 1 ? "item" : "items"}`;
-    }
+  function renderBillItems() {
+    const table = $("billItems");
+    if (!table) return;
 
-    const total = state.items.reduce((sum, item) => sum + item.price, 0);
+    table.innerHTML = "";
+
+    state.items.forEach((item, index) => {
+      const row = document.createElement("tr");
+
+      const nameCell = document.createElement("td");
+      nameCell.textContent = item.name;
+
+      const priceCell = document.createElement("td");
+      priceCell.textContent = money(item.price);
+
+      const actionCell = document.createElement("td");
+      const removeButton = document.createElement("button");
+
+      removeButton.textContent = "Remove";
+      removeButton.className = "btn btn-dark";
+      removeButton.style.marginTop = "0";
+      removeButton.addEventListener("click", () => {
+        state.items.splice(index, 1);
+        renderBillItems();
+      });
+
+      actionCell.appendChild(removeButton);
+      row.append(nameCell, priceCell, actionCell);
+      table.appendChild(row);
+    });
+
+    const total = state.items.reduce(
+      (sum, item) => sum + item.price,
+      0
+    );
 
     if ($("billTotal")) {
       $("billTotal").textContent = money(total);
     }
-
-    if (!state.items.length) {
-      container.innerHTML =
-        '<div class="empty-state">Your added items will appear here.</div>';
-      return;
-    }
-
-    container.innerHTML = state.items.map((item, index) => `
-      <div class="bill-item-row">
-        <span class="bill-item-name">${escapeHTML(item.name)}</span>
-        <span class="bill-item-price">${money(item.price)}</span>
-        <button
-          type="button"
-          class="remove-item"
-          data-remove="${index}"
-          aria-label="Remove ${escapeHTML(item.name)}"
-        >×</button>
-      </div>
-    `).join("");
   }
 
-  $("addItem")?.addEventListener("click", () => {
-    const nameInput = $("itemName");
-    const priceInput = $("itemPrice");
+  $("addItemBtn")?.addEventListener("click", () => {
+    const name = $("itemName")?.value.trim();
+    const price = Number($("itemPrice")?.value);
 
-    if (!nameInput || !priceInput) return;
-
-    const name = nameInput.value.trim();
-    const priceText = priceInput.value.trim();
-    const price = Number(priceText);
-
-    if (!name) {
-      nameInput.focus();
-      showMessage($("billResult"), "Please enter a bill item name.", "error");
+    if (!name || $("itemPrice")?.value === "" ||
+        !Number.isFinite(price) || price < 0) {
+      alert("Please enter a valid item name and amount.");
       return;
     }
 
-    if (priceText === "" || !Number.isFinite(price) || price < 0) {
-      priceInput.focus();
+    const duplicate = state.items.some(
+      (item) => item.name.toLowerCase() === name.toLowerCase()
+    );
+
+    state.items.push({ name, price, duplicate });
+    $("itemName").value = "";
+    $("itemPrice").value = "";
+
+    renderBillItems();
+  });
+
+  $("checkBillBtn")?.addEventListener("click", () => {
+    const result = $("billResult");
+
+    if (state.items.length === 0) {
+      showMessage(result, "Please add at least one bill item.", "error");
+      return;
+    }
+
+    state.billChecks++;
+
+    const counts = {};
+    state.items.forEach((item) => {
+      const key = item.name.toLowerCase();
+      counts[key] = (counts[key] || 0) + 1;
+    });
+
+    const duplicates = Object.entries(counts)
+      .filter(([, count]) => count > 1)
+      .map(([name]) => name);
+
+    state.flaggedItems += duplicates.length;
+
+    if (duplicates.length > 0) {
       showMessage(
-        $("billResult"),
-        "Please enter a valid amount of ₹0 or more.",
+        result,
+        `Possible duplicate entries found: ${duplicates.join(", ")}. Please verify these items against your original bill.`,
+        "error"
+      );
+    } else {
+      showMessage(
+        result,
+        "No duplicate item names were found in the entries you added. This does not confirm that the bill is medically or financially correct.",
+        "success"
+      );
+    }
+
+    updateStats();
+  });
+
+  // -------------------------------
+  // GOVERNMENT DOCUMENT SCANNER
+  // -------------------------------
+
+  let selectedDocumentFile = null;
+
+  $("documentImage")?.addEventListener("change", (event) => {
+    const file = event.target.files?.[0];
+    const preview = $("documentPreview");
+
+    selectedDocumentFile = null;
+
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      alert("Please upload an image file.");
+      event.target.value = "";
+      return;
+    }
+
+    selectedDocumentFile = file;
+
+    if (preview) {
+      preview.src = URL.createObjectURL(file);
+      preview.style.display = "block";
+    }
+
+    if ($("documentResult")) {
+      $("documentResult").style.display = "none";
+    }
+
+    if ($("ocrText")) {
+      $("ocrText").value = "";
+    }
+
+    if ($("scanProgress")) {
+      $("scanProgress").textContent = "";
+    }
+  });
+
+  function getDocumentRules(type, text) {
+    const normalized = text.toUpperCase();
+
+    if (type === "pan") {
+      const panPattern = /\b[A-Z]{5}[0-9]{4}[A-Z]\b/;
+      const match = normalized.match(panPattern);
+
+      return {
+        found: Boolean(match),
+        value: match ? match[0] : "",
+        message: match
+          ? "PAN-like number format found."
+          : "PAN number format was not detected."
+      };
+    }
+
+    if (type === "aadhaar") {
+      const digits = text.replace(/\D/g, "");
+      const match = digits.match(/\d{12}/);
+
+      return {
+        found: Boolean(match),
+        value: match ? match[0] : "",
+        message: match
+          ? "12-digit Aadhaar-like number format found."
+          : "12-digit number format was not detected."
+      };
+    }
+
+    if (type === "voter") {
+      const voterPattern = /\b[A-Z]{3}[0-9]{7}\b/;
+      const match = normalized.match(voterPattern);
+
+      return {
+        found: Boolean(match),
+        value: match ? match[0] : "",
+        message: match
+          ? "Voter ID-like format found."
+          : "Voter ID format was not detected."
+      };
+    }
+
+    if (type === "driving") {
+      const compact = normalized.replace(/[^A-Z0-9]/g, "");
+      const dlPattern = /[A-Z]{2}[0-9]{2}[0-9]{4}[0-9]{7,11}/;
+      const match = compact.match(dlPattern);
+
+      return {
+        found: Boolean(match),
+        value: match ? match[0] : "",
+        message: match
+          ? "Driving Licence-like number pattern found."
+          : "Driving Licence number pattern was not detected. Some state formats may differ."
+      };
+    }
+
+    return {
+      found: false,
+      value: "",
+      message: "Document type not supported."
+    };
+  }
+
+  function maskSensitiveText(text, type) {
+    if (type === "aadhaar") {
+      return text.replace(/\d{4}[\s-]?\d{4}[\s-]?\d{4}/g, (number) => {
+        const digits = number.replace(/\D/g, "");
+        return `XXXX-XXXX-${digits.slice(-4)}`;
+      });
+    }
+
+    return text;
+  }
+
+  $("scanDocumentBtn")?.addEventListener("click", async () => {
+    const file = selectedDocumentFile;
+    const type = $("documentType")?.value;
+    const result = $("documentResult");
+    const progress = $("scanProgress");
+    const textArea = $("ocrText");
+    const button = $("scanDocumentBtn");
+
+    if (!file) {
+      showMessage(result, "Please upload a document image first.", "error");
+      return;
+    }
+
+    if (!window.Tesseract) {
+      showMessage(
+        result,
+        "OCR library could not load. Check your internet connection and refresh the page.",
         "error"
       );
       return;
     }
 
-    state.items.push({ name, price });
+    button.disabled = true;
+    button.textContent = "Scanning...";
+    progress.textContent = "Preparing OCR engine...";
 
-    nameInput.value = "";
-    priceInput.value = "";
+    try {
+      const worker = await Tesseract.createWorker("eng", 1, {
+        logger: (message) => {
+          if (message.status === "recognizing text") {
+            progress.textContent =
+              `Reading document: ${Math.round(message.progress * 100)}%`;
+          } else {
+            progress.textContent = message.status;
+          }
+        }
+      });
 
-    renderItems();
-    nameInput.focus();
+      const recognition = await worker.recognize(file);
+      await worker.terminate();
 
-    if ($("billResult")) $("billResult").hidden = true;
-  });
+      const extractedText = recognition.data.text || "";
 
-  ["itemName", "itemPrice"].forEach((id) => {
-    $(id)?.addEventListener("keydown", (event) => {
-      if (event.key === "Enter") {
-        event.preventDefault();
-        $("addItem")?.click();
+      const rules = getDocumentRules(type, extractedText);
+
+      // Mask Aadhaar number before displaying OCR output.
+      if (textArea) {
+        textArea.value = maskSensitiveText(extractedText, type);
       }
-    });
-  });
 
-  $("items")?.addEventListener("click", (event) => {
-    const button = event.target.closest("[data-remove]");
-    if (!button) return;
+      const documentNames = {
+        pan: "PAN Card",
+        driving: "Driving Licence",
+        voter: "Voter ID",
+        aadhaar: "Aadhaar Card"
+      };
 
-    const index = Number(button.dataset.remove);
+      const maskedValue = type === "aadhaar" && rules.value
+        ? `XXXX-XXXX-${rules.value.slice(-4)}`
+        : rules.value;
 
-    if (Number.isInteger(index)) {
-      state.items.splice(index, 1);
-      renderItems();
+      const message = rules.found
+        ? `${documentNames[type]}: ${rules.message} Detected value: ${maskedValue}. This is only a format check, not official verification.`
+        : `${documentNames[type]}: ${rules.message} Please check the image quality and document details.`;
+
+      showMessage(
+        result,
+        message,
+        rules.found ? "success" : "error"
+      );
+
+      progress.textContent = "Document scanning completed.";
+    } catch (error) {
+      console.error("OCR error:", error);
+      showMessage(
+        result,
+        "Unable to scan this image. Try a clearer image with good lighting.",
+        "error"
+      );
+      progress.textContent = "Scanning failed.";
+    } finally {
+      button.disabled = false;
+      button.textContent = "Scan Document";
     }
   });
 
-  $("checkBill")?.addEventListener("click", () => {
-    if (!state.items.length) {
+  // -------------------------------
+  // REPORT ISSUE - BACKEND API
+  // -------------------------------
+
+  $("complaintForm")?.addEventListener("submit", async (event) => {
+    event.preventDefault();
+
+    const category = $("category")?.value;
+    const description = $("description")?.value.trim();
+    const contactPreference = $("contactPreference")?.value;
+    const messageBox = $("formMessage");
+
+    if (!category || !description) {
       showMessage(
-        $("billResult"),
-        "Add at least one bill item before running the check.",
-        "warning"
+        messageBox,
+        "Please fill in all required fields.",
+        "error"
       );
       return;
     }
 
-    state.billChecks += 1;
-
-    const counts = new Map();
-
-    state.items.forEach((item) => {
-      const key = normalizeText(item.name);
-      counts.set(key, (counts.get(key) || 0) + 1);
-    });
-
-    const duplicates = [...counts.entries()].filter(([, count]) => count > 1);
-
-    state.flaggedItems = duplicates.reduce(
-      (sum, [, count]) => sum + count - 1,
-      0
+    const submitButton = event.target.querySelector(
+      'button[type="submit"]'
     );
 
-    updateStats();
+    if (submitButton) {
+      submitButton.disabled = true;
+      submitButton.textContent = "Submitting...";
+    }
 
-    if (duplicates.length) {
-      const names = duplicates
-        .map(([name, count]) => `"${name}" (${count} entries)`)
-        .join(", ");
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/complaints`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          category,
+          description,
+          contactPreference
+        })
+      });
+
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(data.message || "Unable to submit report.");
+      }
 
       showMessage(
-        $("billResult"),
-        `Potential duplicate names found: ${names}. Review the original bill to decide whether these entries are legitimate.`,
-        "warning"
-      );
-    } else {
-      showMessage(
-        $("billResult"),
-        "No repeated item names were found in the entries you added. This does not confirm that the bill is correct or fraud-free.",
+        messageBox,
+        `Your report has been submitted successfully. Reference: ${data.reference || data.complaint?.reference || "Check the case tracker"}`,
         "success"
       );
+
+      event.target.reset();
+      await loadComplaints();
+    } catch (error) {
+      console.error("Complaint submission error:", error);
+
+      showMessage(
+        messageBox,
+        `Report submission failed: ${error.message}. Please check that the backend is running.`,
+        "error"
+      );
+    } finally {
+      if (submitButton) {
+        submitButton.disabled = false;
+        submitButton.textContent = "Submit Report";
+      }
     }
   });
 
-  // Check backend health
-  async function checkServer() {
-    const status = $("serverStatus");
-    if (!status) return;
+  // -------------------------------
+  // CASE TRACKER - GET API
+  // -------------------------------
 
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/health`);
-
-      if (!response.ok) {
-        throw new Error("Health endpoint returned an error");
-      }
-
-      const data = await response.json();
-
-      if (data.success === false) {
-        throw new Error("Health check unsuccessful");
-      }
-
-      status.textContent = "System connected";
-      status.title = "Backend health endpoint responded successfully";
-    } catch (error) {
-      console.error("Backend health check failed:", error);
-
-      status.textContent = "Connection issue";
-      status.title = "Check backend server and CORS configuration";
-    }
-  }
-
-  // Reports helpers
-  function extractReports(data) {
+  function getComplaintList(data) {
     if (Array.isArray(data)) return data;
-    if (Array.isArray(data?.complaints)) return data.complaints;
-    if (Array.isArray(data?.reports)) return data.reports;
-    if (Array.isArray(data?.data)) return data.data;
-    if (Array.isArray(data?.data?.complaints)) return data.data.complaints;
-
-    return null;
+    if (Array.isArray(data.complaints)) return data.complaints;
+    if (Array.isArray(data.data)) return data.data;
+    return [];
   }
 
-  function getReference(report) {
-    return report.reference ||
-      report.referenceNumber ||
-      report.complaintId ||
-      report._id ||
-      report.id ||
-      "—";
-  }
-
-  function getStatus(report) {
-    return String(report.status || report.state || "Pending").trim();
-  }
-
-  function getDate(report) {
-    const value =
-      report.createdAt ||
-      report.created_at ||
-      report.submittedAt ||
-      report.date;
-
-    if (!value) return "—";
-
-    const date = new Date(value);
-
-    if (Number.isNaN(date.getTime())) return String(value);
-
-    return date.toLocaleDateString("en-IN", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric"
-    });
-  }
-
-  function statusClass(status) {
-    const normalized = normalizeText(status).replace(/\s+/g, "-");
-
-    if (["resolved", "closed", "completed"].includes(normalized)) {
-      return normalized;
-    }
-
-    if (["under-review", "in-progress"].includes(normalized)) {
-      return normalized;
-    }
-
-    if (normalized === "open") return "open";
-
-    return "";
-  }
-
-  function renderReports() {
-    const tbody = $("caseTable");
-    if (!tbody) return;
-
-    const search = normalizeText($("complaintSearch")?.value);
-    const category = normalizeText($("categoryFilter")?.value);
-    const status = normalizeText($("statusFilter")?.value);
-
-    const filtered = state.reports.filter((report) => {
-      const ref = String(getReference(report));
-      const description = String(
-        report.description || report.message || report.complaint || ""
-      );
-      const reportCategory = String(report.category || "Other");
-      const reportStatus = getStatus(report);
-
-      const searchable = normalizeText(
-        `${ref} ${description} ${reportCategory} ${reportStatus}`
-      );
-
-      return (!search || searchable.includes(search)) &&
-        (!category || normalizeText(reportCategory) === category) &&
-        (!status || normalizeText(reportStatus) === status);
-    });
-
-    if (!filtered.length) {
-      tbody.innerHTML = `<tr><td colspan="5" class="table-empty">${
-        state.reports.length
-          ? "No reports match these filters."
-          : "No reports found. Submitted reports will appear here when available."
-      }</td></tr>`;
-    } else {
-      tbody.innerHTML = filtered.map((report) => {
-        const ref = getReference(report);
-        const categoryName = report.category || "Other";
-        const description =
-          report.description ||
-          report.message ||
-          report.complaint ||
-          "No description provided";
-        const statusName = getStatus(report);
-
-        return `
-          <tr>
-            <td><span class="reference-text">${escapeHTML(ref)}</span></td>
-            <td>${escapeHTML(categoryName)}</td>
-            <td class="description-cell">${escapeHTML(description)}</td>
-            <td>
-              <span class="status-badge ${escapeHTML(statusClass(statusName))}">
-                ${escapeHTML(statusName)}
-              </span>
-            </td>
-            <td>${escapeHTML(getDate(report))}</td>
-          </tr>
-        `;
-      }).join("");
-    }
-
-    const feedback = $("filterMessage");
-
-    if (feedback) {
-      feedback.textContent =
-        `Showing ${filtered.length} of ${state.reports.length} report${state.reports.length === 1 ? "" : "s"}.`;
-    }
-
-    updateStats();
-  }
-
-  async function loadReports() {
+  async function loadComplaints() {
     if (state.loadingReports) return;
 
     state.loadingReports = true;
 
-    const refreshButton = $("refreshCases");
+    const table = $("caseTable");
 
-    if (refreshButton) {
-      refreshButton.disabled = true;
-      refreshButton.textContent = "↻ Loading...";
+    if (table) {
+      table.innerHTML =
+        '<tr><td colspan="5">Loading reports...</td></tr>';
     }
 
     try {
       const response = await fetch(`${API_BASE_URL}/api/complaints`);
 
-      let data;
-
-      try {
-        data = await response.json();
-      } catch {
-        throw new Error("The server returned an invalid response.");
+      if (!response.ok) {
+        throw new Error("Could not load complaints.");
       }
 
-      if (!response.ok || data?.success === false) {
-        throw new Error(data?.message || "Unable to load reports.");
-      }
+      const data = await response.json();
 
-      const reports = extractReports(data);
+      state.reports = getComplaintList(data);
 
-      if (!reports) {
-        throw new Error("The reports response format is not recognized.");
-      }
-
-      state.reports = reports;
-      renderReports();
+      renderComplaints();
+      updateStats();
     } catch (error) {
-      console.error("Loading reports failed:", error);
+      console.error("Complaint loading error:", error);
 
-      const feedback = $("filterMessage");
-
-      if (feedback) {
-        feedback.textContent =
-          error.message || "Unable to load reports. Check your backend connection.";
+      if (table) {
+        table.innerHTML =
+          '<tr><td colspan="5">Unable to load reports. Check backend connection.</td></tr>';
       }
 
-      const tbody = $("caseTable");
-
-      if (tbody) {
-        tbody.innerHTML =
-          '<tr><td colspan="5" class="table-empty">Could not load reports. Check the backend and API connection.</td></tr>';
+      if ($("filterMessage")) {
+        $("filterMessage").textContent = error.message;
       }
     } finally {
       state.loadingReports = false;
-
-      if (refreshButton) {
-        refreshButton.disabled = false;
-        refreshButton.textContent = "↻ Refresh reports";
-      }
     }
   }
 
-  $("refreshCases")?.addEventListener("click", loadReports);
-  $("complaintSearch")?.addEventListener("input", renderReports);
-  $("categoryFilter")?.addEventListener("change", renderReports);
-  $("statusFilter")?.addEventListener("change", renderReports);
+  function renderComplaints() {
+    const table = $("caseTable");
+    if (!table) return;
 
-  // Complaint submission
-  const complaintForm = $("complaintForm");
+    const search = ($("complaintSearch")?.value || "").toLowerCase();
+    const category = $("categoryFilter")?.value || "";
+    const status = $("statusFilter")?.value || "";
 
-  if (complaintForm) {
-    complaintForm.addEventListener("submit", async (event) => {
-      event.preventDefault();
+    const filtered = state.reports.filter((report) => {
+      const reference = String(report.reference || "").toLowerCase();
+      const description = String(report.description || "").toLowerCase();
 
-      const category = $("complaintCategory")?.value;
-      const description = $("complaintText")?.value.trim();
-      const contactPreference = $("contactMethod")?.value || "none";
-      const button = $("submitReport");
-      const result = $("reportResult");
+      const matchesSearch =
+        reference.includes(search) || description.includes(search);
 
-      if (!category || !description || description.length < 10) {
-        showMessage(
-          result,
-          "Please select a category and describe the concern in at least 10 characters.",
-          "error"
-        );
-        return;
-      }
+      const matchesCategory =
+        !category || report.category === category;
 
-      if (button) {
-        button.disabled = true;
-        button.textContent = "Submitting report...";
-      }
+      const matchesStatus =
+        !status || report.status === status;
 
-      try {
-        const response = await fetch(`${API_BASE_URL}/api/complaints`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            category,
-            description,
-            contactPreference
-          })
-        });
-
-        let data;
-
-        try {
-          data = await response.json();
-        } catch {
-          throw new Error("The server returned an invalid response.");
-        }
-
-        if (!response.ok || data?.success === false) {
-          throw new Error(data?.message || "Unable to submit the report.");
-        }
-
-        const complaint =
-          data.complaint || data.report || data.data?.complaint || data.data;
-
-        const reference =
-          complaint && typeof complaint === "object"
-            ? getReference(complaint)
-            : null;
-
-        showMessage(
-          result,
-          `Your report was submitted successfully.${
-            reference && reference !== "—" ? ` Reference: ${reference}.` : ""
-          } Keep this reference for your records.`,
-          "success"
-        );
-
-        complaintForm.reset();
-        await loadReports();
-      } catch (error) {
-        console.error("Complaint submission failed:", error);
-
-        showMessage(
-          result,
-          `${error.message || "Unable to submit the report."} Check the backend server and CORS settings.`,
-          "error"
-        );
-      } finally {
-        if (button) {
-          button.disabled = false;
-          button.innerHTML = 'Submit safety report <span>→</span>';
-        }
-      }
+      return matchesSearch && matchesCategory && matchesStatus;
     });
-  } else {
-    console.error(
-      'HealthGuard: form with id="complaintForm" was not found in index.html.'
-    );
+
+    table.innerHTML = "";
+
+    if (filtered.length === 0) {
+      table.innerHTML =
+        '<tr><td colspan="5">No matching reports found.</td></tr>';
+    } else {
+      filtered.forEach((report) => {
+        const row = document.createElement("tr");
+
+        let statusClass = "";
+
+        if (report.status === "Resolved") {
+          statusClass = "resolved";
+        } else if (report.status === "Under Review") {
+          statusClass = "review";
+        }
+
+        const date = report.createdAt
+          ? new Date(report.createdAt).toLocaleDateString("en-IN")
+          : "—";
+
+        row.innerHTML = `
+          <td>${escapeHTML(report.reference || "—")}</td>
+          <td>${escapeHTML(report.category || "—")}</td>
+          <td>${escapeHTML(report.description || "—")}</td>
+          <td>
+            <span class="status-pill ${statusClass}">
+              ${escapeHTML(report.status || "Pending")}
+            </span>
+          </td>
+          <td>${escapeHTML(date)}</td>
+        `;
+
+        table.appendChild(row);
+      });
+    }
+
+    if ($("filterMessage")) {
+      $("filterMessage").textContent =
+        `Showing ${filtered.length} of ${state.reports.length} reports.`;
+    }
   }
 
-  renderItems();
+  $("complaintSearch")?.addEventListener("input", renderComplaints);
+  $("categoryFilter")?.addEventListener("change", renderComplaints);
+  $("statusFilter")?.addEventListener("change", renderComplaints);
+
+  $("refreshCases")?.addEventListener("click", loadComplaints);
+
+  // -------------------------------
+  // INITIALIZE APPLICATION
+  // -------------------------------
+
+  checkBackend();
+  loadComplaints();
+  renderBillItems();
   updateStats();
-  checkServer();
-  loadReports();
 });

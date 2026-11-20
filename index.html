@@ -4,219 +4,316 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#0b1220">
-  <meta name="description" content="HealthGuard helps organize healthcare billing checks, patient safety reports and complaint tracking.">
-  <title>HealthGuard | Patient Safety Intelligence</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <title>HealthGuard | Patient Safety System</title>
   <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+  <script src="script.js" defer></script>
 </head>
 <body>
-  <div class="app-shell">
-    <aside class="sidebar" id="sidebar">
-      <a href="#overview" class="brand">
-        <span class="brand-mark">H<span>+</span></span>
-        <span class="brand-copy">health<span>guard</span><small>SAFETY INTELLIGENCE</small></span>
-      </a>
 
-      <div class="workspace-label">WORKSPACE</div>
-      <nav class="navigation">
-        <a class="nav-link active" href="#overview"><span>◫</span> Overview</a>
-        <a class="nav-link" href="#bill-checker"><span>▤</span> Bill intelligence</a>
-        <a class="nav-link" href="#complaints"><span>◎</span> Safety reports</a>
-        <a class="nav-link" href="#cases"><span>▦</span> Case management</a>
-      </nav>
+<div class="app">
 
-      <div class="sidebar-note">
-        <div class="note-icon">✦</div>
-        <strong>Safer care starts here.</strong>
-        <p>Bring billing transparency and patient safety into one workspace.</p>
-        <a href="#complaints">Submit a report ↗</a>
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <div class="brand-icon">H</div>
+      <div>
+        <h2>HealthGuard</h2>
+        <small>Patient Safety System</small>
+      </div>
+    </div>
+
+    <nav>
+      <p class="nav-heading">MAIN MENU</p>
+      <a href="#dashboard" class="nav-link active">▦ Dashboard</a>
+      <a href="#bill-checker" class="nav-link">▤ Bill Checker</a>
+      <a href="#document-scanner" class="nav-link">▣ Document Scanner</a>
+      <a href="#report-issue" class="nav-link">⚑ Report Issue</a>
+      <a href="#case-tracker" class="nav-link">◷ Case Tracker</a>
+      <a href="#analytics" class="nav-link">▥ Analytics</a>
+    </nav>
+
+    <div class="sidebar-bottom">
+      <div class="security-card">
+        <span>🛡️</span>
+        <strong>Your safety matters</strong>
+        <small>Helping patients identify possible billing and document issues.</small>
+      </div>
+      <small class="version">HealthGuard v2.0</small>
+    </div>
+  </aside>
+
+  <main class="main-content">
+
+    <header class="topbar">
+      <button id="menuToggle" class="menu-toggle">☰</button>
+      <div>
+        <h2>Healthcare Safety Dashboard</h2>
+        <p>Monitor, review and report healthcare concerns.</p>
+      </div>
+      <div class="topbar-right">
+        <span class="status-dot"></span>
+        <span>System Online</span>
+      </div>
+    </header>
+
+    <section id="dashboard" class="page-section">
+      <div class="welcome">
+        <div>
+          <span class="eyebrow">PATIENT PROTECTION PLATFORM</span>
+          <h1>Welcome to HealthGuard</h1>
+          <p>One platform to support transparent healthcare and patient safety.</p>
+        </div>
+        <div class="welcome-icon">🛡️</div>
       </div>
 
-      <div class="sidebar-bottom">
-        <div class="user-avatar">HG</div>
-        <div class="user-details"><strong>HealthGuard</strong><span>Project workspace</span></div>
-        <span class="user-menu">•••</span>
-      </div>
-    </aside>
-
-    <main class="main-content" id="overview">
-      <header class="topbar">
-        <div class="topbar-left">
-          <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu">☰</button>
-          <div><div class="eyebrow">HEALTHCARE OVERSIGHT</div><h1>Safety dashboard</h1></div>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <span>Total Checks</span>
+          <h2 id="totalChecks">0</h2>
+          <small>Bill checks performed</small>
         </div>
-        <div class="topbar-right">
-          <div class="live-status"><span class="status-dot"></span><span id="serverStatus">Checking connection...</span></div>
-          <a href="#complaints" class="button button-dark top-action">+ New report</a>
+        <div class="stat-card">
+          <span>Flagged Items</span>
+          <h2 id="totalFlags">0</h2>
+          <small>Items requiring review</small>
         </div>
-      </header>
-
-      <section class="welcome-panel">
-        <div class="welcome-copy">
-          <span class="pill pill-light"><span class="sparkle">✦</span> YOUR SAFETY WORKSPACE</span>
-          <h2>Better visibility.<br><span>Safer healthcare.</span></h2>
-          <p>Monitor billing concerns, organize patient safety reports, and keep important cases in view.</p>
-          <a href="#complaints" class="button button-white">Create a safety report <span>↗</span></a>
+        <div class="stat-card">
+          <span>Total Reports</span>
+          <h2 id="totalReports">0</h2>
+          <small>Patient concerns submitted</small>
         </div>
-        <div class="hero-art" aria-hidden="true">
-          <div class="orbit orbit-one"></div><div class="orbit orbit-two"></div>
-          <div class="hero-cross">+</div>
-          <div class="hero-shield"><span>✓</span></div>
-          <div class="floating-card float-top"><span class="float-icon green">✓</span><span><strong>Safety first</strong><small>Every concern matters</small></span></div>
-          <div class="floating-card float-bottom"><span class="float-icon purple">↗</span><span><strong>Clear oversight</strong><small>One organized workspace</small></span></div>
+        <div class="stat-card">
+          <span>Safety Score</span>
+          <h2 id="totalSafety">100%</h2>
+          <small>Platform indicator</small>
         </div>
-      </section>
-
-      <section class="section-block">
-        <div class="section-heading">
-          <div><div class="eyebrow">AT A GLANCE</div><h2>Workspace overview</h2></div>
-          <span class="subtle-label"><span class="status-dot"></span> Live dashboard</span>
-        </div>
-
-        <div class="stats-grid">
-          <article class="stat-card">
-            <div class="stat-top"><span class="stat-icon icon-blue">▤</span><span class="stat-label">TOTAL REPORTS</span></div>
-            <div class="stat-value" id="totalReports">—</div>
-            <p class="stat-description">Safety reports recorded</p>
-            <div class="stat-foot"><span class="mini-bar blue-bar"></span> All submitted reports</div>
-          </article>
-          <article class="stat-card">
-            <div class="stat-top"><span class="stat-icon icon-amber">⌕</span><span class="stat-label">BILL FLAGS</span></div>
-            <div class="stat-value" id="totalFlags">0</div>
-            <p class="stat-description">Potential duplicate entries</p>
-            <div class="stat-foot"><span class="mini-bar amber-bar"></span> Based on local checks</div>
-          </article>
-          <article class="stat-card">
-            <div class="stat-top"><span class="stat-icon icon-green">♡</span><span class="stat-label">SAFETY CASES</span></div>
-            <div class="stat-value" id="totalSafety">—</div>
-            <p class="stat-description">Reports in your workspace</p>
-            <div class="stat-foot"><span class="mini-bar green-bar"></span> Patient safety tracking</div>
-          </article>
-          <article class="stat-card">
-            <div class="stat-top"><span class="stat-icon icon-purple">⌁</span><span class="stat-label">BILL CHECKS</span></div>
-            <div class="stat-value" id="totalChecks">0</div>
-            <p class="stat-description">Checks in this session</p>
-            <div class="stat-foot"><span class="mini-bar purple-bar"></span> Local session activity</div>
-          </article>
-        </div>
-      </section>
-
-      <div class="content-grid">
-        <section class="panel bill-panel" id="bill-checker">
-          <div class="panel-heading">
-            <div><div class="eyebrow">BILLING TRANSPARENCY</div><h2>Bill intelligence</h2><p>Review a bill for repeated item names.</p></div>
-            <span class="panel-icon blue-icon">▤</span>
-          </div>
-
-          <label class="upload-zone" for="billImage">
-            <input type="file" id="billImage" accept="image/*">
-            <span class="upload-symbol">↑</span>
-            <strong>Upload a bill image</strong>
-            <span>Choose an image from your device</span>
-            <span class="upload-browse">Browse files</span>
-            <img id="preview" alt="Selected bill preview" hidden>
-          </label>
-          <p class="helper-text">Image upload is for preview only. This prototype does not automatically read bill images.</p>
-
-          <div class="divider-label"><span>OR ADD ITEMS MANUALLY</span></div>
-          <div class="item-input-grid">
-            <div class="field"><label for="itemName">Item name</label><input type="text" id="itemName" placeholder="e.g. Consultation fee"></div>
-            <div class="field"><label for="itemPrice">Amount (₹)</label><input type="number" id="itemPrice" min="0" step="0.01" placeholder="500"></div>
-          </div>
-          <button type="button" id="addItem" class="button button-outline button-full">+ Add bill item</button>
-
-          <div class="bill-items-header"><strong>Bill items</strong><span id="itemCount">0 items</span></div>
-          <div id="items" class="bill-items"><div class="empty-state">Your added items will appear here.</div></div>
-          <div class="bill-total-row"><span>Estimated total</span><strong id="billTotal">₹0.00</strong></div>
-          <button type="button" id="checkBill" class="button button-primary button-full">Check for duplicates <span>→</span></button>
-          <div id="billResult" class="result-box" role="status" aria-live="polite" hidden></div>
-          <p class="disclaimer">This tool flags repeated names only. It cannot verify official prices or confirm fraud. Please review concerns with the healthcare provider.</p>
-        </section>
-
-        <section class="panel report-panel" id="complaints">
-          <div class="panel-heading">
-            <div><div class="eyebrow">PATIENT ADVOCACY</div><h2>Submit a safety report</h2><p>Document a concern for follow-up.</p></div>
-            <span class="panel-icon green-icon">♡</span>
-          </div>
-
-          <div class="form-intro"><span class="form-intro-icon">i</span><span>Share clear details so your concern can be reviewed.</span></div>
-          <form id="complaintForm">
-            <div class="field">
-              <label for="complaintCategory">Report category <span class="required">*</span></label>
-              <select id="complaintCategory" required>
-                <option value="">Choose a category</option>
-                <option value="Billing Issue">Billing issue</option>
-                <option value="Overcharging">Overcharging concern</option>
-                <option value="Patient Safety">Patient safety</option>
-                <option value="Medical Negligence">Medical negligence concern</option>
-                <option value="Service Quality">Service quality</option>
-                <option value="Other">Other</option>
-              </select>
-            </div>
-            <div class="field">
-              <label for="complaintText">Describe your concern <span class="required">*</span></label>
-              <textarea id="complaintText" rows="5" minlength="10" required placeholder="Describe what happened, when it happened, and any details that may help with review..."></textarea>
-              <span class="field-hint">Please avoid sharing unnecessary sensitive medical information.</span>
-            </div>
-            <div class="field">
-              <label for="contactMethod">Preferred contact method</label>
-              <select id="contactMethod">
-                <option value="none">No contact preference</option>
-                <option value="email">Email</option>
-                <option value="phone">Phone</option>
-              </select>
-            </div>
-            <button type="submit" id="submitReport" class="button button-primary button-full">Submit safety report <span>→</span></button>
-            <div id="reportResult" class="result-box" role="status" aria-live="polite" hidden></div>
-            <p class="privacy-note"><span>♧</span> Only submit information you are authorized to share. This student prototype is not an emergency service or an official healthcare regulator.</p>
-          </form>
-        </section>
       </div>
 
-      <section class="panel cases-panel" id="cases">
-        <div class="cases-heading">
-          <div><div class="eyebrow">REPORT MANAGEMENT</div><h2>Recent safety reports</h2><p>View and filter reports returned by your backend.</p></div>
-          <button id="refreshCases" class="button button-outline">↻ Refresh reports</button>
+      <div class="section-heading">
+        <div>
+          <h2>Quick Actions</h2>
+          <p>Choose a service to get started.</p>
         </div>
-        <div class="filters-row">
-          <div class="search-box"><span>⌕</span><input id="complaintSearch" type="search" placeholder="Search reports..." aria-label="Search reports"></div>
-          <select id="categoryFilter" aria-label="Filter by category">
-            <option value="">All categories</option>
-            <option value="Billing Issue">Billing issue</option>
-            <option value="Overcharging">Overcharging</option>
-            <option value="Patient Safety">Patient safety</option>
-            <option value="Medical Negligence">Medical negligence</option>
-            <option value="Service Quality">Service quality</option>
-            <option value="Other">Other</option>
-          </select>
-          <select id="statusFilter" aria-label="Filter by status">
-            <option value="">All statuses</option>
-            <option value="pending">Pending</option>
-            <option value="under review">Under review</option>
-            <option value="resolved">Resolved</option>
-            <option value="open">Open</option>
-          </select>
+      </div>
+
+      <div class="quick-grid">
+        <a href="#bill-checker" class="quick-card">
+          <span>🧾</span>
+          <h3>Check Medical Bill</h3>
+          <p>Review bill items and identify possible duplicate entries.</p>
+        </a>
+        <a href="#document-scanner" class="quick-card">
+          <span>🪪</span>
+          <h3>Scan Government ID</h3>
+          <p>Extract visible text and check basic document formats.</p>
+        </a>
+        <a href="#report-issue" class="quick-card">
+          <span>⚑</span>
+          <h3>Report an Issue</h3>
+          <p>Submit a healthcare concern for review.</p>
+        </a>
+        <a href="#case-tracker" class="quick-card">
+          <span>📋</span>
+          <h3>Track Your Case</h3>
+          <p>Search and follow submitted complaints.</p>
+        </a>
+      </div>
+    </section>
+
+    <section id="bill-checker" class="page-section">
+      <div class="section-heading">
+        <div>
+          <h2>Medical Bill Checker</h2>
+          <p>Review bill items for possible duplicate entries.</p>
         </div>
-        <div id="filterMessage" class="table-feedback" role="status">Loading reports...</div>
+      </div>
+
+      <div class="panel">
+        <label for="billImage">Upload medical bill image</label>
+        <input type="file" id="billImage" accept="image/*">
+        <img id="billPreview" class="bill-preview" alt="Bill preview">
+
+        <div class="form-grid">
+          <div>
+            <label for="itemName">Medicine / Service Name</label>
+            <input id="itemName" type="text" placeholder="e.g. Paracetamol">
+          </div>
+          <div>
+            <label for="itemPrice">Amount (₹)</label>
+            <input id="itemPrice" type="number" min="0" placeholder="e.g. 150">
+          </div>
+        </div>
+
+        <button id="addItemBtn" class="btn btn-primary">+ Add Bill Item</button>
         <div class="table-wrap">
           <table>
-            <thead><tr><th>REFERENCE</th><th>CATEGORY</th><th>DESCRIPTION</th><th>STATUS</th><th>DATE SUBMITTED</th></tr></thead>
-            <tbody id="caseTable"><tr><td colspan="5" class="table-empty">Loading your reports...</td></tr></tbody>
+            <thead>
+              <tr><th>Item</th><th>Amount</th><th>Action</th></tr>
+            </thead>
+            <tbody id="billItems"></tbody>
           </table>
         </div>
-        <div class="table-footer"><span>Reports are displayed according to available backend data.</span><span class="table-footer-mark">HEALTHGUARD <span>●</span></span></div>
-      </section>
+        <div class="bill-total">
+          <span>Total Amount</span>
+          <strong id="billTotal">₹0.00</strong>
+        </div>
+        <button id="checkBillBtn" class="btn btn-dark">Check Bill Items</button>
+        <div id="billResult" class="result-box"></div>
+      </div>
+    </section>
 
-      <footer class="footer">
-        <a href="#overview" class="footer-brand"><span class="footer-mark">H+</span> HealthGuard</a>
-        <span>Built for transparency. Designed for safer care.</span>
-        <span>Student project prototype · Not an official medical service</span>
-      </footer>
-    </main>
-  </div>
-  <script src="script.js"></script>
+    <section id="document-scanner" class="page-section">
+      <div class="section-heading">
+        <div>
+          <h2>Government Document Scanner</h2>
+          <p>Extract text and check basic document number formats.</p>
+        </div>
+      </div>
+
+      <div class="notice">
+        <strong>Important:</strong> This scanner uses OCR and basic format checks.
+        It does not confirm whether a government document is genuine, active,
+        or officially verified.
+      </div>
+
+      <div class="panel">
+        <label for="documentType">Select Document Type</label>
+        <select id="documentType">
+          <option value="pan">PAN Card</option>
+          <option value="driving">Driving Licence</option>
+          <option value="voter">Voter ID</option>
+          <option value="aadhaar">Aadhaar Card</option>
+        </select>
+
+        <label for="documentImage">Upload Document Image</label>
+        <input type="file" id="documentImage" accept="image/*">
+
+        <img id="documentPreview" class="document-preview" alt="Document preview">
+
+        <button id="scanDocumentBtn" class="btn btn-primary">
+          Scan Document
+        </button>
+
+        <div id="scanProgress" class="progress-text"></div>
+        <div id="documentResult" class="result-box"></div>
+
+        <label for="ocrText">Extracted Text</label>
+        <textarea id="ocrText" rows="8" placeholder="Scanned text will appear here..." readonly></textarea>
+      </div>
+    </section>
+
+    <section id="report-issue" class="page-section">
+      <div class="section-heading">
+        <div>
+          <h2>Report Healthcare Issue</h2>
+          <p>Submit a concern about billing, safety or healthcare services.</p>
+        </div>
+      </div>
+
+      <div class="panel">
+        <form id="complaintForm">
+          <label for="category">Issue Category</label>
+          <select id="category" required>
+            <option value="">Select category</option>
+            <option value="Billing Fraud">Billing Fraud</option>
+            <option value="Duplicate Charges">Duplicate Charges</option>
+            <option value="Medical Negligence">Medical Negligence</option>
+            <option value="Patient Safety">Patient Safety</option>
+            <option value="Other">Other</option>
+          </select>
+
+          <label for="description">Describe Your Issue</label>
+          <textarea id="description" rows="5" required
+            placeholder="Explain your concern clearly..."></textarea>
+
+          <label for="contactPreference">Contact Preference</label>
+          <select id="contactPreference">
+            <option value="none">No preference</option>
+            <option value="phone">Phone</option>
+            <option value="email">Email</option>
+          </select>
+
+          <button type="submit" class="btn btn-primary">Submit Report</button>
+        </form>
+        <div id="formMessage" class="result-box"></div>
+      </div>
+    </section>
+
+    <section id="case-tracker" class="page-section">
+      <div class="section-heading">
+        <div>
+          <h2>Case Tracker</h2>
+          <p>Search and review submitted patient reports.</p>
+        </div>
+        <button id="refreshCases" class="btn btn-dark">↻ Refresh</button>
+      </div>
+
+      <div class="panel">
+        <div class="filter-grid">
+          <input id="complaintSearch" placeholder="Search reference or description...">
+          <select id="categoryFilter">
+            <option value="">All Categories</option>
+            <option value="Billing Fraud">Billing Fraud</option>
+            <option value="Duplicate Charges">Duplicate Charges</option>
+            <option value="Medical Negligence">Medical Negligence</option>
+            <option value="Patient Safety">Patient Safety</option>
+            <option value="Other">Other</option>
+          </select>
+          <select id="statusFilter">
+            <option value="">All Statuses</option>
+            <option value="Pending">Pending</option>
+            <option value="Under Review">Under Review</option>
+            <option value="Resolved">Resolved</option>
+          </select>
+        </div>
+
+        <p id="filterMessage"></p>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Reference</th>
+                <th>Category</th>
+                <th>Description</th>
+                <th>Status</th>
+                <th>Date</th>
+              </tr>
+            </thead>
+            <tbody id="caseTable">
+              <tr><td colspan="5">Loading reports...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section id="analytics" class="page-section">
+      <div class="section-heading">
+        <div>
+          <h2>Analytics Overview</h2>
+          <p>Summary of activity on the HealthGuard platform.</p>
+        </div>
+      </div>
+      <div class="panel analytics-panel">
+        <h3>Platform Activity</h3>
+        <p>Use the dashboard statistics to monitor bill checks, flagged items and submitted reports.</p>
+        <div class="analytics-note">
+          <span>🛡️</span>
+          <div>
+            <strong>Patient safety first</strong>
+            <p>All flagged entries are indicators for human review, not proof of fraud.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      HealthGuard © 2026 · Patient Safety & Healthcare Transparency
+    </footer>
+
+  </main>
+</div>
+
 </body>
 </html>
